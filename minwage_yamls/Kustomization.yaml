@@ -1,0 +1,6 @@
+resources:
+  - ecosim-secrets.yaml
+  - ecosim-storage.yaml
+  - ecosim-database-deployment.yaml
+  - ecosim-rediscache-deployment.yaml
+  - ecosim-django-deployment.yaml

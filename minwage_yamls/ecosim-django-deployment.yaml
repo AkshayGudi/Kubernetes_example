@@ -1,0 +1,75 @@
+# NodePort Service 
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecosim-django-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: ecosim-django
+  ports:
+  - port: 8000
+    targetPort: 8000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecosim-django-app
+spec:
+  selector:
+    matchLabels:
+      app: ecosim-django
+  template:
+    metadata:
+      labels:
+        app: ecosim-django
+    spec:
+      containers:
+      - name: django-app
+        image: ecosim:v1
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "3Gi"
+            cpu: "500m"
+        env:
+          - name: MYSQL_HOST
+            value: ecosim-db-service
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: MYSQL_USER
+            valuefrom:
+              secretKeyRef:
+                - key: ecosim-secret
+                - value: mysql-username                
+          - name: MYSQL_PASSWORD
+            valuefrom:
+              secretKeyRef:
+                - key: ecosim-secret
+                - value: mysql-password
+          - name: MYSQL_DB
+            value: ecodb
+          - name: REDIS_HOST
+            value: ecosim-redisdb
+          - name: REDIS_PORT
+            value: "6379"
+        ports:
+        - containerPort: 8080
+
+      - name: django-reverse-proxy
+        image: ecosim-nginx-proxy:v1
+        imagePullPolicy: Never
+        env:
+          - name: APP_HOST
+            value: 127.0.0.1
+          - name: APP_PORT
+            value: "8080"
+        ports:
+          - containerPort: 8000
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        

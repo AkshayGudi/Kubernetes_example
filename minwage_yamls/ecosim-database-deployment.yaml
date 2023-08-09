@@ -1,0 +1,63 @@
+# Config for service which exposes MySQL Database
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecosim-db-service
+spec:
+  clusterIP: None
+  selector:
+    app: ecosim-db
+  ports:
+  - port: 3306
+    targetPort: 3306
+    
+---
+
+# Config for deployment which runs MySQL container Pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecosim-db
+spec:
+  selector:
+    matchLabels:
+      app: ecosim-db
+  template:
+    metadata:
+      labels:
+        app: ecosim-db
+    spec:
+      volumes: 
+        - name: ecosim-db-volume
+          persistenceVolumeClaim:
+            claimName: ecosim-mysql-pvc          
+      containers:                          
+      - name: ecosim-mysql-db
+        image: mysql:8.0
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valuefrom:
+              secretKeyRef:
+                key: ecosim-secret
+                value: mysql-root-password
+          - name: MYSQL_DATABASE
+            value: ecodb
+          - name: MYSQL_USER
+            valuefrom:
+              secretKeyRef:
+                key: ecosim-secret
+                value: mysql-username
+          - name: MYSQL_PASSWORD
+            valuefrom:
+              secretKeyRef:
+                key: ecosim-secret
+                value: mysql-password
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3306
+        volumesMount:
+          - mountPath: /var/lib/mysql
+            name: ecosim-db-volume

@@ -1,11 +1,30 @@
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: ecosim-mysql-localstorage
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: Immediate
-reclaimPolicy: Delete
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: ecosim-mysql-localstorage
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: Immediate
+# reclaimPolicy: Delete
 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ecosim-pv
+spec:
+  capacity:
+    storage: "5Gi"
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /storage/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minwage-app
 ---
 
 apiVersion: v1
@@ -13,10 +32,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: ecosim-mysql-pvc
 spec:
-  storageClassName: ecosim-mysql-localstorage
+  storageClassName: ""
   resources:
     requests:
-      storage: 2Gi
-  volumeMode: Filesystem
+      storage: 5Gi
   accessModes:
     - ReadWriteOnce

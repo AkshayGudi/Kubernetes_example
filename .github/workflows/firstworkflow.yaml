@@ -12,5 +12,8 @@ jobs:
         run: echo "Testing first workflow"
         shell: bash
       - name: list all
-        run:  ls
+        run:  |
+          python pip install numpy
+          cd minwage_yamls
+          python test.py
         shell: bash
